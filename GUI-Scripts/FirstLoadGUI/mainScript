@@ -1,0 +1,28 @@
+local coreFunctions = require(game.ReplicatedStorage:WaitForChild("coreFunctions"))
+local button = script.Parent
+local firstLoadGui = button.Parent
+local blackScreenGui = firstLoadGui.Parent:WaitForChild("BlackScreen")
+local clickedBefore = false
+
+button.MouseButton1Click:Connect(function()
+	if not clickedBefore then
+		clickedBefore = true
+		
+		button.Active = false
+
+		local screenIsBlack = blackScreenGui.Background.Transparency == 0
+		local screenIsClear = blackScreenGui.Background.Transparency == 1
+
+		coreFunctions.fadeIn(blackScreenGui)
+
+		repeat
+			task.wait()
+		until screenIsBlack
+
+		firstLoadGui.Enabled = false
+
+		task.wait(0.5)
+
+		coreFunctions.fadeOut(blackScreenGui)
+	end
+end)
