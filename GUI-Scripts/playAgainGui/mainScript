@@ -1,0 +1,23 @@
+local coreFunctions = require(game.ReplicatedStorage:WaitForChild("coreFunctions"))
+local playAgainGui = script.Parent.Parent
+local button = script.Parent
+local trackersFolder = game.ReplicatedStorage.Trackers
+local templatesHaveBeenCleared = trackersFolder.Booleans.templatesHaveBeenCleared.Value
+local clickDebounce = false
+
+button.MouseButton1Click:Connect(function()
+	if not clickDebounce then
+		clickDebounce = true
+		print("clickity click")
+		coreFunctions.fadeIn(game.Players.LocalPlayer.PlayerGui.BlackScreen)
+		coreFunctions.closePlayAgainGui()
+		coreFunctions.playAgainButtonIsClickedBoolean()
+
+		task.wait(5)
+
+		coreFunctions.resetClearingAllTemplatesBoolean()
+
+		coreFunctions.fadeOut(game.Players.LocalPlayer.PlayerGui.BlackScreen)
+		clickDebounce = false
+	end
+end)
