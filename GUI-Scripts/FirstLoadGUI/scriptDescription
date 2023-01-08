@@ -1,0 +1,9 @@
+As soon as the player's character is added to the game, the script will check if the player has ever clicked the button before.
+
+If not, it will enable the GUI
+
+Once the play button is clicked, the script will make the screen fade black with the function: coreFunctions.fadeIn(blackScreenGui)
+
+The screen slowly fades. Once it has reached pitch black, the FirstLoadGui is Disabled.
+
+It then waits 0.5 seconds, then gradually makes the blackScreenGui transparent with the function: coreFunctions.fadeOut(blackScreenGui)
