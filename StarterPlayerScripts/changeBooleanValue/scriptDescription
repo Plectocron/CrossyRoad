@@ -1,0 +1,5 @@
+The script attempts to continuously check for a remote trigger.
+
+Once triggered, the script takes 2 parametes: the Boolean object to manipulate, and the value to convert to.
+
+The script then assigns those values as expected to the level of the Server.
