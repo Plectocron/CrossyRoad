@@ -1,0 +1,4 @@
+game.ReplicatedStorage.Remotes.changeBooleanValueRemote.OnServerEvent:Connect(function(player, booleanPartToChange, valueToChangeTo)
+	booleanPartToChange.Value = valueToChangeTo
+	print("Boolean changed. Name/Value: "..booleanPartToChange.Name, booleanPartToChange.Value)
+end)
