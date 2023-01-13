@@ -1,0 +1,292 @@
+local UserInputService = game:GetService("UserInputService")
+local playerModel = game.Workspace.Player.playerModel
+local cameraFocus = game.Workspace.Player.CameraFocus
+local characterPart = playerModel.CharacterPart
+local tweenService = game:GetService("TweenService")
+local overlapParams = OverlapParams.new()
+local coreFunctions = require(game.ReplicatedStorage:WaitForChild("coreFunctions"))
+local jumpSound = game.ReplicatedStorage.Audios.jumpSound
+local trackers = game.ReplicatedStorage.Trackers
+
+-- Attributes to accurately modify the process
+local dead = trackers.Booleans.playerIsDead.Value
+local currentlyJumping = false
+local xMovement = 0
+local zMovement = 0
+local yOrientation = 0
+local initialPosition = playerModel.PrimaryPart.Position
+local jumpTime = 0.1
+local checkerToLookAt = nil
+local soundPlaying = false
+
+--[[TweenInfos:]]
+local moveTweenInfo = TweenInfo.new(
+	jumpTime/2,
+	Enum.EasingStyle.Linear,
+	Enum.EasingDirection.In,
+	0,
+	false,
+	0
+)
+local moveCharacterTweenInfo = TweenInfo.new(
+	jumpTime,
+	Enum.EasingStyle.Linear,
+	Enum.EasingDirection.In,
+	0,
+	false,
+	0
+)
+local cameraTweenInfo = TweenInfo.new(
+	jumpTime*2,
+	Enum.EasingStyle.Sine,
+	Enum.EasingDirection.Out,
+	0,
+	false,
+	0
+)
+local sinkDownTweenInfo = TweenInfo.new(
+	jumpTime*2,
+	Enum.EasingStyle.Linear,
+	Enum.EasingDirection.In,
+	0,
+	false,
+	0
+)
+
+--[[Other Functions:]]
+local function playJumpSound()
+	local jumpSoundIsPlaying = jumpSound.Playing
+	if not jumpSoundIsPlaying then
+		jumpSound:Play()
+	elseif jumpSoundIsPlaying then
+		jumpSound:Stop()
+		jumpSound:Play()
+	end
+end
+
+local function resetAttributes()
+	coreFunctions.resetPlayerIsDeadBoolean()
+	currentlyJumping = false
+	xMovement = 0
+	zMovement = 0
+	yOrientation = 0
+	initialPosition = playerModel.PrimaryPart.Position
+	jumpTime = 0.1
+	checkerToLookAt = nil
+	soundPlaying = false
+end
+
+function tweenToMovingPart(movePart, targetPart, duration)
+	local startCFrame = movePart.CFrame
+	local startTime = os.clock()
+	local connection = nil
+	connection = game:GetService('RunService').Heartbeat:Connect(function()
+		local t = math.clamp((os.clock()-startTime)/duration, 0 ,1)
+		if movePart and movePart.Parent and targetPart and targetPart.Parent then
+			movePart.CFrame = startCFrame:Lerp(targetPart.CFrame, t)
+		end
+		if t == 1 then
+			connection:Disconnect()
+			connection = nil
+		end
+	end)
+end
+
+-- Preparing function to process the move's fate
+local function moveCharacter(direction)
+	if currentlyJumping == false then
+		currentlyJumping = true
+		
+		local moveCamera = tweenService:Create(cameraFocus, cameraTweenInfo, {CFrame = CFrame.new(cameraFocus.Position + Vector3.new(xMovement*0.1,0, zMovement))})
+		
+		-- Changes the values so that we know how far exactly we should move, and find what's ahead in that direction (such as an Endzone, drownZone, or Barrier)
+		if direction == "Forward" then
+			zMovement -= 12
+			yOrientation = 0
+			local characterDrownJump1 = tweenService:Create(playerModel.CharacterPart, moveTweenInfo, {CFrame = CFrame.new(initialPosition + Vector3.new(xMovement/2, 7, zMovement/2)) * CFrame.Angles(math.rad(0), math.rad(yOrientation), math.rad(2))})
+			local characterDrownJump2 = tweenService:Create(playerModel.CharacterPart, moveTweenInfo, {CFrame = CFrame.new(initialPosition + Vector3.new(xMovement/2, -7, zMovement/2)) * CFrame.Angles(math.rad(0), math.rad(yOrientation), math.rad(2))})
+			local coreDrownJump1 = tweenService:Create(playerModel.PrimaryPart, moveTweenInfo, {CFrame = CFrame.new(initialPosition + Vector3.new(xMovement/2,7, zMovement/2))})
+			local coreDrownJump2 = tweenService:Create(playerModel.PrimaryPart, moveTweenInfo, {CFrame = CFrame.new(initialPosition + Vector3.new(xMovement,-7, zMovement))})
+			for index, value in game.Workspace:GetPartsInPart(playerModel.forwardChecker, overlapParams) do -- loops through all parts forward of the player's character
+				
+				if value.Name == "Level" then
+					if value.Value.Value > coreFunctions.playerLevel then
+						coreFunctions.playerLevel = value.Value.Value
+					end
+				end
+				if value.Name == "Endzone" then
+					zMovement += 12 -- cancels out the future value change
+				elseif value.Name == "barrierZone" then
+					zMovement += 12 -- cancels out the future value change
+				elseif value.Name == "sitZone" then
+					-- code here
+				elseif value.Name == "drownZone" then -- If direction "Forward" has a drownZone, make player hop, then drown.
+					playJumpSound()
+					coreDrownJump1:Play() -- jump up
+					characterDrownJump1:Play()
+					moveCamera:Play()
+					game.Workspace.Player.CharacterSpace.CFrame = CFrame.new(initialPosition + Vector3.new(xMovement,-2.7, zMovement)) -- moves character space instantly
+					task.wait(jumpTime/2)-- time until previous tween is done
+					coreDrownJump2:Play()
+					characterDrownJump2:Play()
+					task.wait(jumpTime*1.5) -- leftover time until camera is done shifting
+					coreFunctions.playerIsDeadBoolean()
+					coreFunctions.openPlayAgainGui()
+				end
+			end
+		elseif direction == "Backward" then
+			zMovement += 12
+			yOrientation = 180
+			local characterDrownJump1 = tweenService:Create(playerModel.CharacterPart, moveTweenInfo, {CFrame = CFrame.new(initialPosition + Vector3.new(xMovement/2, 7, zMovement/2)) * CFrame.Angles(math.rad(0), math.rad(yOrientation), math.rad(2))})
+			local characterDrownJump2 = tweenService:Create(playerModel.CharacterPart, moveTweenInfo, {CFrame = CFrame.new(initialPosition + Vector3.new(xMovement/2, -7, zMovement/2)) * CFrame.Angles(math.rad(0), math.rad(yOrientation), math.rad(2))})
+			local coreDrownJump1 = tweenService:Create(playerModel.PrimaryPart, moveTweenInfo, {CFrame = CFrame.new(initialPosition + Vector3.new(xMovement/2,7, zMovement/2))})
+			local coreDrownJump2 = tweenService:Create(playerModel.PrimaryPart, moveTweenInfo, {CFrame = CFrame.new(initialPosition + Vector3.new(xMovement,-7, zMovement))})
+			for index, value in game.Workspace:GetPartsInPart(playerModel.backwardChecker, overlapParams) do -- loops through all parts backward of the player's character
+				if value.Name == "Endzone" then
+					zMovement -= 12 -- cancels out the future value change
+				elseif value.Name == "barrierZone" then
+					zMovement -= 12 -- cancels out the future value change
+				elseif value.Name == "sitZone" then
+					-- code here
+				elseif value.Name == "drownZone" then -- If direction "Forward" has a drownZone, make player hop, then drown.
+					playJumpSound()
+					coreDrownJump1:Play() -- jump up
+					characterDrownJump1:Play()
+					moveCamera:Play()
+					game.Workspace.Player.CharacterSpace.CFrame = CFrame.new(initialPosition + Vector3.new(xMovement,-2.7, zMovement)) -- moves character space instantly
+					task.wait(jumpTime/2)-- time until previous tween is done
+					coreDrownJump2:Play()
+					characterDrownJump2:Play()
+					task.wait(jumpTime*1.5) -- leftover time until camera is done shifting
+					coreFunctions.playerIsDeadBoolean()
+					coreFunctions.openPlayAgainGui()
+				end
+			end
+		elseif direction == "Left" then
+			xMovement -= 12
+			yOrientation = 90
+			local characterDrownJump1 = tweenService:Create(playerModel.CharacterPart, moveTweenInfo, {CFrame = CFrame.new(initialPosition + Vector3.new(xMovement/2, 7, zMovement/2)) * CFrame.Angles(math.rad(0), math.rad(yOrientation), math.rad(2))})
+			local characterDrownJump2 = tweenService:Create(playerModel.CharacterPart, moveTweenInfo, {CFrame = CFrame.new(initialPosition + Vector3.new(xMovement/2, -7, zMovement/2)) * CFrame.Angles(math.rad(0), math.rad(yOrientation), math.rad(2))})
+			local coreDrownJump1 = tweenService:Create(playerModel.PrimaryPart, moveTweenInfo, {CFrame = CFrame.new(initialPosition + Vector3.new(xMovement/2,7, zMovement/2))})
+			local coreDrownJump2 = tweenService:Create(playerModel.PrimaryPart, moveTweenInfo, {CFrame = CFrame.new(initialPosition + Vector3.new(xMovement,-7, zMovement))})
+			for index, value in game.Workspace:GetPartsInPart(playerModel.leftChecker, overlapParams) do -- loops through all parts left of the player's character
+
+				if value.Name == "Endzone" then
+					xMovement += 12 -- cancels out the future value change
+				elseif value.Name == "barrierZone" then
+					xMovement += 12 -- cancels out the future value change
+				elseif value.Name == "sitZone" then
+					-- code here
+				elseif value.Name == "drownZone" then -- If direction "Forward" has a drownZone, make player hop, then drown.
+					playJumpSound()
+					coreDrownJump1:Play() -- jump up
+					characterDrownJump1:Play()
+					moveCamera:Play()
+					game.Workspace.Player.CharacterSpace.CFrame = CFrame.new(initialPosition + Vector3.new(xMovement,-2.7, zMovement)) -- moves character space instantly
+					task.wait(jumpTime/2)-- time until previous tween is done
+					coreDrownJump1:Play() -- fall back down
+					characterDrownJump2:Play()
+					task.wait(jumpTime * 1.5) -- leftover time until camera is done shifting
+					coreFunctions.playerIsDeadBoolean()
+					coreFunctions.openPlayAgainGui()
+				end
+			end
+		elseif direction == "Right" then
+			xMovement += 12
+			yOrientation= -90
+			local characterDrownJump1 = tweenService:Create(playerModel.CharacterPart, moveTweenInfo, {CFrame = CFrame.new(initialPosition + Vector3.new(xMovement/2, 7, zMovement/2)) * CFrame.Angles(math.rad(0), math.rad(yOrientation), math.rad(2))})
+			local characterDrownJump2 = tweenService:Create(playerModel.CharacterPart, moveTweenInfo, {CFrame = CFrame.new(initialPosition + Vector3.new(xMovement/2, -7, zMovement/2)) * CFrame.Angles(math.rad(0), math.rad(yOrientation), math.rad(2))})
+			local coreDrownJump1 = tweenService:Create(playerModel.PrimaryPart, moveTweenInfo, {CFrame = CFrame.new(initialPosition + Vector3.new(xMovement/2,7, zMovement/2))})
+			local coreDrownJump2 = tweenService:Create(playerModel.PrimaryPart, moveTweenInfo, {CFrame = CFrame.new(initialPosition + Vector3.new(xMovement,-7, zMovement))})
+			for index, value in game.Workspace:GetPartsInPart(playerModel.rightChecker, overlapParams) do -- loops through all parts right of the player's character
+				if value.Name == "Endzone" then
+					xMovement -= 12 -- cancels out the future value change
+				elseif value.Name == "barrierZone" then
+					xMovement -= 12 -- cancels out the future value change
+				elseif value.Name == "sitZone" then
+					-- code here
+				elseif value.Name == "drownZone" then -- If direction "Forward" has a drownZone, make player hop, then drown.
+					playJumpSound()
+					coreDrownJump1:Play() -- jump up
+					characterDrownJump1:Play()
+					moveCamera:Play()
+					game.Workspace.Player.CharacterSpace.CFrame = CFrame.new(initialPosition + Vector3.new(xMovement,-2.7, zMovement)) -- moves character space instantly
+					task.wait(jumpTime/2)-- time until previous tween is done
+					coreDrownJump2:Play() -- fall back down
+					characterDrownJump2:Play()
+					task.wait(jumpTime * 1.5) -- leftover time until camera is done shifting
+					coreFunctions.playerIsDeadBoolean()
+					coreFunctions.openPlayAgainGui()
+				end
+			end
+		end
+		
+		-- Preparing tweens for successful moves
+		local moveCore1 = tweenService:Create(playerModel.PrimaryPart, moveTweenInfo, {CFrame = CFrame.new(initialPosition + Vector3.new(xMovement/2,7, zMovement/2))})
+		local moveCore2 = tweenService:Create(playerModel.PrimaryPart, moveTweenInfo, {CFrame = CFrame.new(initialPosition + Vector3.new(xMovement,0, zMovement))})
+		local movePlayer1 = tweenService:Create(playerModel.CharacterPart, moveTweenInfo, {
+			CFrame = CFrame.new(initialPosition + Vector3.new(xMovement/2, 7, zMovement/2)) * CFrame.Angles(math.rad(0), math.rad(yOrientation), math.rad(2))})
+		local movePlayer2 = tweenService:Create(playerModel.CharacterPart, moveTweenInfo, {
+			CFrame = CFrame.new(initialPosition + Vector3.new(xMovement, 0, zMovement)) * CFrame.Angles(math.rad(0), math.rad(yOrientation), math.rad(2))})
+		local moveCamera = tweenService:Create(cameraFocus, cameraTweenInfo, {CFrame = CFrame.new(cameraFocus.Position + Vector3.new(xMovement*0.1,0, zMovement))})
+		
+		if not trackers.Booleans.playerIsDead.Value then -- If player is not dead, start moving player's character
+			playJumpSound()
+			moveCore1:Play()
+			movePlayer1:Play()
+			moveCamera:Play()
+			game.Workspace.Player.CharacterSpace.CFrame = CFrame.new(initialPosition + Vector3.new(xMovement,-2.7, zMovement))
+			repeat
+				task.wait() -- stopped here
+			until moveCore1.PlaybackState == Enum.PlaybackState.Completed and movePlayer1.PlaybackState == Enum.PlaybackState.Completed
+			if moveCore1.PlaybackState == Enum.PlaybackState.Completed and movePlayer1.PlaybackState == Enum.PlaybackState.Completed then
+				moveCore2:Play()
+				movePlayer2:Play()
+				task.wait(jumpTime*1.5)
+			end
+				
+			-- If the tween is complete, reset the counters, and refresh the initial point
+			if moveCore2.PlaybackState == Enum.PlaybackState.Completed and movePlayer2.PlaybackState == Enum.PlaybackState.Completed then
+				print("all tweens completed, resetting")
+				initialPosition = playerModel.PrimaryPart.Position
+				xMovement = 0
+				zMovement = 0
+			end
+			currentlyJumping = false
+		end
+	end
+end
+
+-- Constantly looking for valid input
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+	if not gameProcessed then
+		if input.UserInputType == Enum.UserInputType.Keyboard then
+			local inputKey = input
+			if currentlyJumping == true then
+				warn("Currently Jumping")
+				print(playerModel.core.Position == Vector3.new(0,3,0))
+				print(game.Workspace:FindFirstChild("lvl1") == nil)
+				print(playerModel.core.Position == Vector3.new(0,3,0) and game.Workspace:FindFirstChild("lvl1") == nil)
+			elseif not trackers.Booleans.playerIsDead.Value then
+				if inputKey.KeyCode == Enum.KeyCode.W then
+					moveCharacter("Forward")
+				elseif inputKey.KeyCode == Enum.KeyCode.A then
+					moveCharacter("Left")
+				elseif inputKey.KeyCode == Enum.KeyCode.S then
+					moveCharacter("Backward")
+				elseif inputKey.KeyCode == Enum.KeyCode.D then
+					moveCharacter("Right")
+				end
+			elseif trackers.Booleans.playerIsDead.Value == true then
+				warn("Can't move, you are dead.")
+			end
+		end
+	end
+end)
+
+game:GetService("RunService").Heartbeat:Connect(function()
+	local templatesMightHaveReset = playerModel.core.Position == Vector3.new(0,3,0) and game.Workspace:FindFirstChild("lvl1") == nil
+	if templatesMightHaveReset then
+		resetAttributes()
+	end
+end)
