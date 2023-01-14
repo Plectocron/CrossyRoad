@@ -9,11 +9,11 @@ player.CharacterAdded:Connect(function(addedPlayer)
 	print("Player added. starting first load")
 	
 	-- firstLoad
-	local function firstLoadGui()
+	local function firstLoad()
 		player.PlayerGui:WaitForChild("FirstLoadGui").Enabled = true
 		coreFunctions.loadTemplates("Classic")
 	end
-	firstLoadGui()
+	firstLoad()
 	
 	-- autoLoadTemplates
 	game:GetService("RunService").Heartbeat:Connect(function()
