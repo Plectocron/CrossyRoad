@@ -1,0 +1,65 @@
+local coreFunctions = require(game.ReplicatedStorage:WaitForChild("coreFunctions"))
+local trackerFolder = game.ReplicatedStorage.Trackers
+local player = game.Players.LocalPlayer
+
+
+player.CharacterAdded:Connect(function(addedPlayer)
+	
+	coreFunctions.isCurrentlyLoading = true
+	print("Player added. starting first load")
+	
+	-- firstLoad
+	local function firstLoadGui()
+		player.PlayerGui:WaitForChild("FirstLoadGui").Enabled = true
+		coreFunctions.loadTemplates("Classic")
+	end
+	firstLoadGui()
+	
+	-- autoLoadTemplates
+	game:GetService("RunService").Heartbeat:Connect(function()
+		local characterIsNearEnd = coreFunctions.playerLevel >= coreFunctions.highestTemplateLevel - 20
+		if characterIsNearEnd and not coreFunctions.isCurrentlyLoading and coreFunctions.templatesReadyToSetUp then
+			coreFunctions.isCurrentlyLoading = true
+			print("Player's Level: "..tostring(coreFunctions.playerLevel).." ".. " Highest Template: "..tostring(coreFunctions.highestTemplateLevel))
+			coreFunctions.loadTemplates("Classic")
+		end
+	end)
+	
+	-- binsTemplatesBehind
+	game:GetService("RunService").Heartbeat:Connect(function()
+		if not coreFunctions.isCurrentlyLoading and coreFunctions.templatesReadyToSetUp then
+			for index, template in coreFunctions.templatesTable do
+				local templateLevel = template.Level.Value.Value
+				local templateIsBelowLimit = templateLevel < coreFunctions.playerLevel - 6
+				local alreadyInBin = table.find(coreFunctions.templateBin, template)
+				if templateIsBelowLimit and not alreadyInBin then
+					table.remove(coreFunctions.templatesTable, table.find(coreFunctions.templatesTable, template))
+					table.insert(coreFunctions.templateBin, template) -- adds the template to the bin to be cleared later
+				end
+			end
+		end
+	end)
+	
+	game:GetService("RunService").Heartbeat:Connect(function()
+		if trackerFolder.Booleans.playAgainButtonIsClicked.Value == true then
+			trackerFolder.Booleans.playAgainButtonIsClicked.Value = false
+			coreFunctions.templatesReadyToSetUp = false
+			print("Play Button was clicked!")
+			
+			-- Reset Phase:
+			coreFunctions.clearingAllTemplatesBoolean()
+			coreFunctions.resetPlayAgainButtonIsClickedBoolean()
+			coreFunctions.generalRefresh()
+			coreFunctions.resetClearingAllTemplatesBoolean()
+			coreFunctions.templatesReadyToSetUp = true
+			coreFunctions.resetPlayerIsDeadBoolean()
+			
+			-- Loading Phase:
+			repeat
+				task.wait()
+			until game.ReplicatedStorage.Trackers.Booleans.playerIsDead.Value == false
+			print("Player is dead: "..tostring(game.ReplicatedStorage.Trackers.Booleans.playerIsDead.Value), "Loading templates!")
+			coreFunctions.loadTemplates("Classic")
+		end
+	end)
+end)
