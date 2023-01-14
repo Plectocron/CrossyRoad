@@ -1,0 +1,20 @@
+(A function binded to RunService.Heartbeat constantly checks if the player may have resetted via it's position, and whether or not lvl1 has loaded)
+
+Once it has collected a keyboard input, it will face a sort of wall to first check if the player is currently jumping via the script's
+currentlyJumping variable. If it turns out that the player may be jumping, it will print out: "Currently Jumping", and stop the function from there on.
+
+If it passes through the previous wall, it will then check if the player is dead via the boolean playerIsDead, which both the server and client may access.
+
+If it turns out that the playerIsDead boolean is set to true, it will simply print out: "Can't move, you are dead."
+
+IF however the player may not be dead, it will find what specific key on the keyboard was pressed, then call the function moveCharacter() and
+pass one of the four strings as the parameter ("Forward", "Left", "Backward", "Right") depending on the key pressed.
+
+Once in the function, currentlyJumping will be set to true to avoid other threads from being created. Then based on the parameter passed, it will
+go through a process that modifies the variables. For example, if it finds that the direction the player wants to go has an endzone, it will
+cancel out 12 studs towards that direction, making it only hop in place later on in the function. And if the player attempts to jump into a drownZone,
+then it will play a set of animations of the player hopping and "drowning", then calls the function: coreFunctions.playerIsDeadBoolean(), which changes
+the global boolean to true, which restricts it from playing the main animation coming right after that, and the player won't be able to make another
+input thread unless it resets the variable with the "Play Again!" button.
+
+Once it is through that long process, it will finally use the outcome of the variables to finally play the animation.
