@@ -5,5 +5,15 @@ the function then sets coreFunctions.isCurrentlyLoading to true, opens the Play 
 it has 3 functions binded to RunService's Heartbeat:
 
 1. autoLoadTemplates
-  checks if the player is 20 templates away from the end, and if it's not already loading to prevent having 2 of the same threads running.
-  if both conditions are satisfied
+  checks if the player is 20 templates away from the end, and if it's not already loading to prevent stacking another thread.
+  if both conditions are satisfied, then coreFunctions.isCurrentlyLoading will be set to true to prevent another thread from being created.
+  it then calls coreFunctions.loadTemplates("Classic")
+  
+2. binsTemplatesBehind
+  if coreFunctions.isCurrentlyLoading isn't true,
+  then it will loop through coreFunctions.templatesTable (which is a table that carries the templates in workspace.)
+  it will check if the template in the current array is within or through the limit, and if it is not already in the bin.
+  if both conditions are positive, it will remove the current template from coreFunctions.templatesTable, and add it to coreFunctions.templatebin.
+  
+3. Reset when Play Button is clicked
+  this heartbeat constantly checks if the "Play Again!" button is clicked
