@@ -5,7 +5,8 @@ the function then sets coreFunctions.isCurrentlyLoading to true, opens the Play 
 it has 3 functions binded to RunService's Heartbeat:
 
 1. autoLoadTemplates
-  checks if the player is 20 templates away from the end, and if it's not already loading to prevent stacking another thread.
+  checks if the player is 20 templates away from the end, and if it's not already loading, and if templatesReadyToSetUp is set to true
+  to prevent stacking another thread.
   if both conditions are satisfied, then coreFunctions.isCurrentlyLoading will be set to true to prevent another thread from being created.
   it then calls coreFunctions.loadTemplates("Classic")
   
@@ -16,4 +17,7 @@ it has 3 functions binded to RunService's Heartbeat:
   if both conditions are positive, it will remove the current template from coreFunctions.templatesTable, and add it to coreFunctions.templatebin.
   
 3. Reset when Play Button is clicked
-  this heartbeat constantly checks if the "Play Again!" button is clicked
+  this heartbeat constantly checks if the "Play Again!" button is clicked using trackerFolder.Booleans.playAgainButtonIsClicked.Value.
+  If the condition is positive, it will then set trackerFolder.Booleans.playAgainButtonIsClicked.Value to false, and templatesReadyToSetUp to false
+  to prevent more threads from being created.
+  
