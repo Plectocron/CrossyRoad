@@ -18,6 +18,26 @@ it has 3 functions binded to RunService's Heartbeat:
   
 3. Reset when Play Button is clicked
   this heartbeat constantly checks if the "Play Again!" button is clicked using trackerFolder.Booleans.playAgainButtonIsClicked.Value.
-  If the condition is positive, it will then set trackerFolder.Booleans.playAgainButtonIsClicked.Value to false, and templatesReadyToSetUp to false
-  to prevent more threads from being created.
+  If the condition is positive, it will then set trackerFolder.Booleans.playAgainButtonIsClicked.Value to false to prevent more threads from being created,
+  and templatesReadyToSetUp to false to prevent autoLoadTemplates from creating another thread for loading the templates.
   
+  the script then enters a reset phase which include the following functions by order:
+      
+			coreFunctions.resetPlayAgainButtonIsClickedBoolean()
+      
+			coreFunctions.generalRefresh() -- A function that calls a some other functions with the goal of refreshing data.
+                                        coreFunctions.resetPlayerPosition() -- Puts the player's character back to it's position
+                                        coreFunctions.resetPlayerLevel() -- Resets the PlayerLevel used to track, well... the player's level
+                                        coreFunctions.resetLevelCounter() -- Resets the LevelCounter used to assign levels to new templates during dupes
+                                        coreFunctions.resetLatestTemplateVector() -- Resets the recorded data of the latest template's position in Vector3
+                                        coreFunctions.clearAllTemplates() -- This functions puts templates to the bin, then delete them from existance.
+      
+			coreFunctions.templatesReadyToSetUp = true
+      
+			coreFunctions.resetPlayerIsDeadBoolean() -- This boolean is reset so that the player may finally move.
+      
+  the script then waits until playerIsDead.Value == false
+  
+  once playerIsDead.Value is finally set to false and the player may move around, we call coreFunctions.loadTemplates("Classic") to finally get the player
+  to play again.
+      
