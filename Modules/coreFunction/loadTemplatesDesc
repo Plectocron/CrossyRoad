@@ -1,0 +1,17 @@
+The function first checks for the version from the first parameter.
+
+
+                                                                        "Classic"
+
+    It then sets coreFunctions.isCurrentlyLoading to true
+
+    It collects a bunch of variable, such as: 
+        randomStartPlace -- Finds a random start place within classicSceneryFolder.startPlace
+        studsPerTemplate -- Gets the amount of studs to move to one point. (normally 12 studs)
+        obstacleTemplates -- Ranges from roads, grassfields traintracks, water.
+        (etc. etc.)
+        
+    The functions then calls another function: loadStart()
+        the function sets coreFunctions.startLoaded to true so that when loadTemplates() is called, it's sure whether or not it should load the startplace
+        with the variable startPlace, the randomly picked start place gets cloned and parented to the workspace.
+        
