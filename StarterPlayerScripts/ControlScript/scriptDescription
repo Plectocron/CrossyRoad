@@ -41,3 +41,4 @@ it has 3 functions binded to RunService's Heartbeat:
   once playerIsDead.Value is finally set to false and the player may move around, we call coreFunctions.loadTemplates("Classic") to finally get the player
   to play again.
       
+  the script then loads some templates with the function: coreFunctions.loadTemplates("Classic")
