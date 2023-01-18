@@ -11,7 +11,37 @@ The function first checks for the version from the first parameter.
         obstacleTemplates -- Ranges from roads, grassfields traintracks, water.
         (etc. etc.)
         
-    The functions then calls another function: loadStart()
-        the function sets coreFunctions.startLoaded to true so that when loadTemplates() is called, it's sure whether or not it should load the startplace
-        with the variable startPlace, the randomly picked start place gets cloned and parented to the workspace.
+    Documentation of the function: loadStart()
+      the function sets coreFunctions.startLoaded to true so that when loadTemplates() is called again, it's sure whether or not it should load the 
+      startplace with the variable startPlace, the randomly picked start place gets cloned and parented to the workspace.
+      The loadStart() function then Unanchors and Welds the individual parts of the startPlace to the characterSpawn. (Should probably manually fix
+                                                                                                                    this to enhance speed.)
+                                                                                                                    
+    Documentation of the function: loadObstacleTemplates()
+      the function will first check if weldedObstacleTemplatesExists is true (This variable should refer to the copy of the obstacleTemplates Folder,
+                                                                 but with almost all the components unanchored and welded to their respective PrimaryPart,
+                                                                 which makes it a whole lot easier to change the template's position.)
+                                                                 
+        if weldedObstacleTemplatesExists is false, then the function will clone obstacleTemplates, rename the clone to "obstacleTemplatesWelded",
+        and finally parent it to the same Folder as obstacleTemplates.
         
+        Else if weldedObstacleTemplatesExists is true, it will simply store it in the variable "obstacle" for the rest of the code block's script to use.
+        
+      the function will then have an organization of variables that control the pattern of the templates being laid out. Stuff like the random amount
+      of the same template, and the other being a table with a structured pattern of which goes next, and how often in 1 loop.
+      
+      --{{LEFT HERE!}}--
+      
+      
+        
+    The function then calls another function: loadStart()
+    
+    The function then loops 5 times:
+        If the player isn't dead (checked with: tracker.Booleans.playerIsDead.Value == false), then it will call the function: loadObstacleTemplates.
+                                                                                                    
+        Else if the player is dead during the checking from this loop, it will reset coreFunctions.levelCounter = 0, and coreFunctions.latestTemplateVector.
+        It will then break the for loop
+        
+        If this is the last iteration, it will clear the templates bin with the function: coreFunctions.clearTemplateBin(), which dumps the templates
+                                                                                          that have been binned before loadTemplates() was called.
+                                                                                          
