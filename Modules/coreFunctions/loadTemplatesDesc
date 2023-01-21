@@ -27,14 +27,50 @@ The function first checks for the version from the first parameter.
         
         Else if weldedObstacleTemplatesExists is true, it will simply store it in the variable "obstacle" for the rest of the code block's script to use.
         
-      the function will then have an organization of variables that control the pattern of the templates being laid out. Stuff like the random amount
-      of the same template, and the other being a table with a structured pattern of which goes next, and how often in 1 loop.
-      
-      If the welded templates weren't already made before, then the version we have just cloned may not have been unanchored and welded,
-      if that's the case, then we would go through a phase that Unanchors and Welds our templates.
-      
-      
-      
+        the function will then have an organization of variables that control the pattern of the templates being laid out. Stuff like the random amount
+        of the same template, and the other being a table with a structured pattern of which goes next, and how often in 1 loop.
+
+        If the welded templates weren't already made before, then the version we have just cloned may not have been unanchored and welded,
+        if that's the case, then we would go through a phase that Unanchors and Welds our templates.
+        
+        Documentation of the function: spawnObstacles()
+        
+          This function clones templates from the object variable (which is simply a variable that stores a folde containing the unanchored and welded
+          templates), and then structure them into workspace in the right order. 
+        
+          Documentation of the function: duplicateObstacle()
+          
+            This function has 3 Parameters:{
+            
+            template: This parameter is used to detect if the template given is a model (a template with only 1 of its type, like a road or train track),
+            or if the given template is a folder (a template with many differenct types, like grassfields or water templates)
+            
+            waterType: If the obstacle to be duplicated is a type of water, we'll have to know what type of water it is so that we can clone the right
+            one (Lilypad, LogLeft, LogRight)
+            
+            iterationOfDuplicate: This parameter helps assist with the batch of roads to deploy (first, second third)
+            }
+            
+            The function basically duplicates a template, gives it a level, then parents it to a folder to be structured later on.
+            If the template is a model, then the process is obvious enough. So I'll just go over the part of code where the template is a folder.
+            
+            Unlike the code block for the model template which is able to clone a template immediately since we already know it's parent,
+            the folder template type has a lot of the same class of templates. So before we clone it, we'll have to dig a little deeper using the name 
+            of the folder, then randomly select a number to randomly pick the one of the various templates to clone and manage.
+            
+          Documentation of the function: structureDuplicatedObstacles()
+            
+            This function has 1 Parameter:{
+            
+            structurableTemplate: This is the template that this function is assigned to structure
+            }
+            
+            The function first parents the template to workspace. It then moves it's coordinate 12 studs ahead of the previous latest template.
+            It then updates the latestTemplateVector variable to ofcourse make sure that the next template knows where the previous template landed.
+            If the template level is the highest, it will update the variable: highestTemplateLevel (Which has no use just yet as of Jan 21, 2022)
+            
+          --{LEFT HERE!}
+            
       
         
     The function then calls another function: loadStart()
