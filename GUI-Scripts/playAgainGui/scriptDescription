@@ -6,8 +6,8 @@ The script then fades the screen black with the function: coreFunctions.fadeIn(g
 
 Once the screen is pitch black, it closes this GUI.
 
-It then sets the Global Boolean: playAgainButtonIsClickedBoolean, to true. Which triggers a reset phase, and loads the templates back with the function:
-coreFunctions.loadTemplates("Classic")
+It then sets the Global Boolean: playAgainButtonIsClickedBoolean, to true. Which triggers a reset phase from the gameManager, and loads the templates back 
+with the function: coreFunctions.loadTemplates("Classic")
 
 Once the Global Boolean value, playAgainButtonIsClickedBoolean, is set to true, the black screen fades out with the function:
 coreFunctions.fadeOut(game.Players.LocalPlayer.PlayerGui.BlackScreen)
