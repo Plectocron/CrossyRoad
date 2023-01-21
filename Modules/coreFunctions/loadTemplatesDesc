@@ -30,7 +30,10 @@ The function first checks for the version from the first parameter.
       the function will then have an organization of variables that control the pattern of the templates being laid out. Stuff like the random amount
       of the same template, and the other being a table with a structured pattern of which goes next, and how often in 1 loop.
       
-      --{{LEFT HERE!}}--
+      If the welded templates weren't already made before, then the version we have just cloned may not have been unanchored and welded,
+      if that's the case, then we would go through a phase that Unanchors and Welds our templates.
+      
+      
       
       
         
