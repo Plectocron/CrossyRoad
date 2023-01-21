@@ -36,6 +36,7 @@ end
 
 -- Template Manipulation:
 coreFunctions.latestTemplateVector = Vector3.new(0,0,0) -- Position of the latest template created
+coreFunctions.weldedTemplatesMade = false
 coreFunctions.templatesReadyToSetUp = true
 coreFunctions.highestTemplateLevel = 0 -- used to track the highest existing template
 coreFunctions.templateBin = {} -- used to track which templates to delete
@@ -55,11 +56,6 @@ coreFunctions.clearTemplateBin = function() -- clears the template bin
 	table.clear(coreFunctions.templateBin)
 end
 coreFunctions.loadTemplates = function(templateTheme) -- loads templates
-	if coreFunctions.currentlyRefreshing == false then
-		repeat
-			task.wait()
-		until coreFunctions.currentlyRefreshing == false
-	end
 	print("In loadTemplates function")
 	if templateTheme == "Classic" then
 		print("In the second code block")
@@ -110,15 +106,16 @@ coreFunctions.loadTemplates = function(templateTheme) -- loads templates
 		local function loadObstacleTemplates()
 			print("loading obstacles")
 			
-			local weldedObstacleExists = game.ReplicatedStorage.Sceneries.Classic:FindFirstChild("obstacleTemplatesWelded")
+			local weldedObstacleTemplatesExists = game.ReplicatedStorage.Sceneries.Classic:FindFirstChild("obstacleTemplatesWelded")
 			local obstacle
 			
-			if not weldedObstacleExists then
+			if not weldedObstacleTemplatesExists then
 				obstacle = obstacleTemplates:Clone()
 				obstacle.Name = "obstacleTemplatesWelded"
 				obstacle.Parent = obstacleTemplates.Parent
-			elseif weldedObstacleExists then
+			elseif weldedObstacleTemplatesExists then
 				obstacle = game.ReplicatedStorage.Sceneries.Classic:FindFirstChild("obstacleTemplatesWelded")
+				coreFunctions.weldedTemplatesMade = true
 			end
 			
 			-- Number Variables to generate a random number of templates at once
@@ -142,81 +139,84 @@ coreFunctions.loadTemplates = function(templateTheme) -- loads templates
 			}
 			
 			-- Unanchor and Welding Phase
-			for i, templateFolder in obstacle:GetChildren() do
-				-- Grass
-				if templateFolder.Name == "Grassfield" then
-					for i, grassField in templateFolder:GetChildren() do -- Entering Folder for access to the Base Models
-						task.wait()
-						for i, prop in grassField:GetChildren() do -- Entering the Base Models for access to the Individual Props
+			if coreFunctions.weldedTemplatesMade == false then
+				for i, templateFolder in obstacle:GetChildren() do
+					-- Grass
+					if templateFolder.Name == "Grassfield" then
+						for i, grassField in templateFolder:GetChildren() do -- Entering Folder for access to the Base Models
 							task.wait()
-							if prop:IsA("Model") then
-								for i, part in prop:GetChildren() do -- Entering Prop for access to the Individual Parts
+							for i, prop in grassField:GetChildren() do -- Entering the Base Models for access to the Individual Props
+								task.wait()
+								if prop:IsA("Model") then
+									for i, part in prop:GetChildren() do -- Entering Prop for access to the Individual Parts
+										local weld = Instance.new("WeldConstraint")
+										weld.Part0 = part
+										weld.Part1 = grassField.PrimaryPart
+										weld.Parent = grassField.PrimaryPart
+										part.Anchored = false
+									end
+								elseif prop.Name ~= "primaryPart" then
 									local weld = Instance.new("WeldConstraint")
-									weld.Part0 = part
+									weld.Part0 = prop
 									weld.Part1 = grassField.PrimaryPart
 									weld.Parent = grassField.PrimaryPart
-									part.Anchored = false
+									prop.Anchored = false
 								end
-							elseif prop.Name ~= "primaryPart" then
-								local weld = Instance.new("WeldConstraint")
-								weld.Part0 = prop
-								weld.Part1 = grassField.PrimaryPart
-								weld.Parent = grassField.PrimaryPart
-								prop.Anchored = false
 							end
 						end
 					end
-				end
-				-- Water
-				if templateFolder.Name == "Water" then
-					for i, propModels in templateFolder:GetChildren() do -- Entering Folder for access to Prop Models
-						task.wait()
-						for i, part in propModels:GetChildren() do -- Entering Prop Models for access to individual Parts
+					-- Water
+					if templateFolder.Name == "Water" then
+						for i, propModels in templateFolder:GetChildren() do -- Entering Folder for access to Prop Models
+							task.wait()
+							for i, part in propModels:GetChildren() do -- Entering Prop Models for access to individual Parts
+								task.wait()
+								if part.Name ~= "primaryPart" then
+									local weld = Instance.new("WeldConstraint")
+									weld.Part0 = part
+									weld.Part1 = propModels.PrimaryPart
+									weld.Parent = propModels.PrimaryPart
+									part.Anchored = false
+								end
+							end
+						end
+					end
+					-- Road
+					if templateFolder.Name == "Road" then
+						for i, part in templateFolder:GetChildren() do
 							task.wait()
 							if part.Name ~= "primaryPart" then
 								local weld = Instance.new("WeldConstraint")
 								weld.Part0 = part
-								weld.Part1 = propModels.PrimaryPart
-								weld.Parent = propModels.PrimaryPart
+								weld.Part1 = templateFolder.PrimaryPart
+								weld.Parent = templateFolder.PrimaryPart
 								part.Anchored = false
 							end
 						end
 					end
-				end
-				-- Road
-				if templateFolder.Name == "Road" then
-					for i, part in templateFolder:GetChildren() do
-						task.wait()
-						if part.Name ~= "primaryPart" then
-							local weld = Instance.new("WeldConstraint")
-							weld.Part0 = part
-							weld.Part1 = templateFolder.PrimaryPart
-							weld.Parent = templateFolder.PrimaryPart
-							part.Anchored = false
-						end
-					end
-				end
-				-- Train
-				if templateFolder.Name == "TrainTracks" then
-					for i, prop in templateFolder:GetChildren() do
-						task.wait()
-						if prop:IsA("Model") then
-							for i, part in prop:GetChildren() do
+					-- Train
+					if templateFolder.Name == "TrainTracks" then
+						for i, prop in templateFolder:GetChildren() do
+							task.wait()
+							if prop:IsA("Model") then
+								for i, part in prop:GetChildren() do
+									local weld = Instance.new("WeldConstraint")
+									weld.Part0 = part
+									weld.Part1 = templateFolder.PrimaryPart
+									part.Anchored = false
+									weld.Parent = templateFolder.PrimaryPart
+								end
+							elseif prop ~= templateFolder.PrimaryPart then
 								local weld = Instance.new("WeldConstraint")
-								weld.Part0 = part
+								weld.Part0 = prop
 								weld.Part1 = templateFolder.PrimaryPart
-								part.Anchored = false
+								prop.Anchored = false
 								weld.Parent = templateFolder.PrimaryPart
 							end
-						elseif prop ~= templateFolder.PrimaryPart then
-							local weld = Instance.new("WeldConstraint")
-							weld.Part0 = prop
-							weld.Part1 = templateFolder.PrimaryPart
-							prop.Anchored = false
-							weld.Parent = templateFolder.PrimaryPart
 						end
 					end
 				end
+				coreFunctions.weldedTemplatesMade = true
 			end
 			
 			-- Duplication and Structure Phase
@@ -489,7 +489,7 @@ end
 coreFunctions.resetPlayerPosition = function()
 	game.Workspace.Player:SetPrimaryPartCFrame(CFrame.new(Vector3.new(0,3,0)) * CFrame.Angles(0,0,0))
 	game.Workspace.Player.CharacterSpace.Position = Vector3.new(0,0,0)
-	game.Workspace.Player.CameraFocus.Position = Vector3.new(33.4, 16.3, 1)
+	game.Workspace.Player.CameraFocus.Position = Vector3.new(3.4, 16.3, -2)
 	game.Workspace.Player.playerModel.CharacterPart.Position = Vector3.new(0,3,0)
 	print("Player's position has been reset")
 end
