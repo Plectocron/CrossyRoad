@@ -56,7 +56,7 @@ The function first checks for the version from the first parameter.
             
             Unlike the code block for the model template which is able to clone a template immediately since we already know it's parent,
             the folder template type has a lot of the same class of templates. So before we clone it, we'll have to dig a little deeper using the name 
-            of the folder, then randomly select a number to randomly pick the one of the various templates to clone and manage.
+            of the folder, then randomly select a number to randomly pick one of the various templates to clone and manage.
             
           Documentation of the function: structureDuplicatedObstacles()
             
@@ -65,22 +65,46 @@ The function first checks for the version from the first parameter.
             structurableTemplate: This is the template that this function is assigned to structure
             }
             
+            This function has the core process of structuring a template.
+            
             The function first parents the template to workspace. It then moves it's coordinate 12 studs ahead of the previous latest template.
             It then updates the latestTemplateVector variable to ofcourse make sure that the next template knows where the previous template landed.
             If the template level is the highest, it will update the variable: highestTemplateLevel (Which has no use just yet as of Jan 21, 2022)
             
-          --{LEFT HERE!}
+          Documentation of the function: structureObstacles()
+          
+            This function simply iterates through the function: structureDuplicatedObstacles(), about 9 times.
+            Depending on the variable: templateOrder, the function will loop through one of the duplicated folders, and continuously call the function:
+            structureDuplicatedObstacles(), which then structures all the templates inside the "duplicated folder".
+          
+          >>Enough with the functions. in this phase, we will finally duplicate and structure the templates<<
+          
+          <<Duplication iterator>>:
             
-      
+            It will loop through the table: randomObstaclesTable.
+            Then depending on the iteration, it will enter another for loop for that specific element, and depending on the value (which is a given number)
+            of the element, it will continuously duplicate that template. Using the iterator as to what template, and the element value to know how many
+            times to duplicate that template. Simple, but unreliable if ever we need changes with the order of templates.
+          
+            
+          <<Structure iterator>>:
+          
+            This iterator iterates through the function: structureObstacles(). It simply structures the templates by moving them from the duplicated
+            folder to workspace, and some other configurations.
         
-    The function then calls another function: loadStart()
+        The function then calls the function: spawnObstacles(), Which duplicates and structures the templates.
+        
+    The function then calls another function: loadStart(). That is, if it wasn't already called before.
     
     The function then loops 5 times:
         If the player isn't dead (checked with: tracker.Booleans.playerIsDead.Value == false), then it will call the function: loadObstacleTemplates.
                                                                                                     
-        Else if the player is dead during the checking from this loop, it will reset coreFunctions.levelCounter = 0, and coreFunctions.latestTemplateVector.
+        Else if the player is dead during the checking from this loop, it will reset coreFunctions.levelCounter = 0, and coreFunctions.latestTemplateVector
         It will then break the for loop
         
         If this is the last iteration, it will clear the templates bin with the function: coreFunctions.clearTemplateBin(), which dumps the templates
                                                                                           that have been binned before loadTemplates() was called.
+                                                                                          
+     Once the function has finally reached the very end, it will set coreFunctions.isCurrentlyLoading to false to allow the function:
+     coreFunctions.clearAllTemplates, to begin the process of binning, then clearing the templates.
                                                                                           
